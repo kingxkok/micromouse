@@ -4,7 +4,7 @@
 Serial pc(SERIAL_TX, SERIAL_RX);
 
 
-PwmOut LeftMotorPWMF(PA_7); //TODO: write correct pin
+PwmOut LeftMotorPWMF(PA_7);
 PwmOut RightMotorPWMF(PB_10);
 
 PwmOut LeftMotorPWMB(PB_6);
@@ -21,18 +21,19 @@ InterruptIn HH8(PC_4);
 void IE_right(){right_travelled++;}
 void IE_left(){left_travelled++;}
 
+Ticker Systicker; //to do error calculator and PID at regular intervals
+Timer timer; //for dt calculations for Derivative controller
 
-
-Ticker Systicker;
 DigitalOut myled(LED1);
 
 const int Kp = 1;
 const int Kd = 1;
-Timer timer;
+const int CORRECTION_PERIOD = 300; //in ms
+
 int encoder_error = 0;
 int prev_error = 0;
 int correction = 0;
-const int period = 10000;
+const int pwm_period = 10000;
  int base_speed = 2000;
 
 int P_Controller(int error) {
@@ -41,7 +42,7 @@ int P_Controller(int error) {
 }
 
 int D_Controller(int error){
-  int dError = error- prev_error;
+  int dError = error - prev_error;
   int dt = timer.read_us();
   timer.reset();
   prev_error = error;
@@ -68,17 +69,17 @@ int main() {
     //mypwm = 0.5;
     printf("Left pwm set to %.2f %%\n", LeftMotorPWMF.read() * 100);
     
-    Systicker.attach_us(&systick, 1000);
+    Systicker.attach_us(&systick, 200);
     
     //Motors
-    LeftMotorPWMF.period_us(period);
-    RightMotorPWMF.period_us(period);
+    LeftMotorPWMF.period_us(pwm_period);
+    RightMotorPWMF.period_us(pwm_period);
     
     while(1) {
        // delay(100);
         LeftMotorPWMF.pulsewidth_us(base_speed+correction);
         RightMotorPWMF.pulsewidth_us(base_speed-correction);
-        wait(1);
+        wait_ms(CORRECTION_PERIOD); 
    //     LeftMotorPWMF.pulsewidth_us(0);
      //   RightMotorPWMF.pulsewidth_us(0);
      //   pc.printf("right: %d left: %d\r\n", right_travelled,left_travelled);

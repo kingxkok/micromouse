@@ -59,16 +59,16 @@ DigitalOut myled(LED1);
 
 const int Kp = 1;
 const int Kd = 1;
-const int CORRECTION_PERIOD = 30; //in ms
-const int Kp_ir = 600;
-const int Kd_ir = 10;
+const int CORRECTION_PERIOD = 5; //in ms
+const int Kp_ir = 650;
+const int Kd_ir = 15;
 
 
 int encoder_error = 0;
 int prev_error = 0;
 int correction = 0;
 const int pwm_period = 10000;
-const int base_speed = 1500;
+const int base_speed = 2000; //was 1300
 
 float base_error = 0;
 float ir_error = 0;
@@ -119,9 +119,9 @@ void reset_wheels(){
     wait_ms(100);
 }
 
-const int left_turn_time = 600;
-const int left_turn_left_motor = 1300;
-const int left_turn_right_motor = 1300;
+const int left_turn_time = 400;
+const int left_turn_left_motor = 1200;
+const int left_turn_right_motor = 1200;
 void turn_left(){
 	reset_wheels();
 	LeftMotorPWMB.pulsewidth_us(left_turn_left_motor);
@@ -129,9 +129,9 @@ void turn_left(){
   wait_ms(left_turn_time);
 }
 
-const int right_turn_time = 600;
-const int right_turn_left_motor = 1300;
-const int right_turn_right_motor = 1300;
+const int right_turn_time = 400;
+const int right_turn_left_motor = 1200;
+const int right_turn_right_motor = 1200;
 void turn_right(){
 	reset_wheels();
 	LeftMotorPWMF.pulsewidth_us(right_turn_left_motor); //turn backward
@@ -140,10 +140,11 @@ void turn_right(){
 }
 
 void brake(){
-	LeftMotorPWMF.pulsewidth_us(pwm_period);
-	RightMotorPWMF.pulsewidth_us(pwm_period);
+//	LeftMotorPWMF.pulsewidth_us(pwm_period);
+//	RightMotorPWMF.pulsewidth_us(pwm_period);
   LeftMotorPWMB.pulsewidth_us(pwm_period); 
   RightMotorPWMB.pulsewidth_us(pwm_period);
+
   reset_wheels();
 }
 
@@ -154,6 +155,9 @@ void go_straight(){
   RightMotorPWMF.pulsewidth_us(base_speed-correction);
   wait_ms(CORRECTION_PERIOD); 
 }
+
+float LEFT_HAS_WALL_THRESHOLD;
+float RIGHT_HAS_WALL_THRESHOLD;
 
 int main() {
     right_encoder.rise(&IE_right);
@@ -166,11 +170,15 @@ int main() {
   	base_error = IR_LEFT.read() - IR_RIGHT.read();
   	wait_ms(100);
   	base_error = IR_LEFT.read() - IR_RIGHT.read();
+
   	wait_ms(100);
+    LEFT_HAS_WALL_THRESHOLD = IR_LEFT.read();
+    RIGHT_HAS_WALL_THRESHOLD = IR_RIGHT.read();
+
   	base_error = 0.5*(base_error + IR_LEFT.read() - IR_RIGHT.read());
   	base_error = 0.5*(base_error + IR_LEFT.read() - IR_RIGHT.read());
   	base_error = 0.5*(base_error + IR_LEFT.read() - IR_RIGHT.read());
-    
+
     Systicker.attach_us(&systick, 500);
 
     pc.printf("lol");  
@@ -181,15 +189,54 @@ int main() {
     LeftMotorPWMB.period_us(pwm_period);
     RightMotorPWMB.period_us(pwm_period);
 
-    float CENTER_LEFT_WALL_THRESHOLD = 0.02;
-    float CENTER_RIGHT_WALL_THRESHOLD = 0.09;
+    float CENTER_LEFT_WALL_THRESHOLD = 0.005;
+    float CENTER_RIGHT_WALL_THRESHOLD = 0.02;
     float error;
+
+    LEFT_HAS_WALL_THRESHOLD = IR_LEFT.read();
+    RIGHT_HAS_WALL_THRESHOLD = IR_RIGHT.read();
+
+
+    pc.printf("Thresholds %.2f %.2f", LEFT_HAS_WALL_THRESHOLD, RIGHT_HAS_WALL_THRESHOLD);
+    wait_ms(200);
+    LEFT_HAS_WALL_THRESHOLD = 0.5*(IR_LEFT.read() + LEFT_HAS_WALL_THRESHOLD);
+    RIGHT_HAS_WALL_THRESHOLD = 0.5*(IR_RIGHT.read() + RIGHT_HAS_WALL_THRESHOLD);
+    pc.printf("Thresholds %.2f %.2f", LEFT_HAS_WALL_THRESHOLD, RIGHT_HAS_WALL_THRESHOLD);
+    wait_ms(200);
+
+    LEFT_HAS_WALL_THRESHOLD = 0.5*(IR_LEFT.read() + LEFT_HAS_WALL_THRESHOLD);
+    RIGHT_HAS_WALL_THRESHOLD = 0.5*(IR_RIGHT.read() + RIGHT_HAS_WALL_THRESHOLD);
+    pc.printf("Thresholds %.2f %.2f", LEFT_HAS_WALL_THRESHOLD, RIGHT_HAS_WALL_THRESHOLD);
+    wait_ms(200);
+    LEFT_HAS_WALL_THRESHOLD = 0.5*(IR_LEFT.read() + LEFT_HAS_WALL_THRESHOLD);
+    RIGHT_HAS_WALL_THRESHOLD = 0.5*(IR_RIGHT.read() + RIGHT_HAS_WALL_THRESHOLD);
+
+    LEFT_HAS_WALL_THRESHOLD -= 0.07;
+    RIGHT_HAS_WALL_THRESHOLD -= 0.07;
+    
+    pc.printf("%.2f %.2f", LEFT_HAS_WALL_THRESHOLD, RIGHT_HAS_WALL_THRESHOLD);
+    wait_ms(200);
+    pc.printf("%.2f %.2f", LEFT_HAS_WALL_THRESHOLD, RIGHT_HAS_WALL_THRESHOLD);
+    wait_ms(200);
+    pc.printf("%.2f %.2f", LEFT_HAS_WALL_THRESHOLD, RIGHT_HAS_WALL_THRESHOLD);
+    wait_ms(200);
+    pc.printf("%.2f %.2f", LEFT_HAS_WALL_THRESHOLD, RIGHT_HAS_WALL_THRESHOLD);
+     wait_ms(200);
+    pc.printf("%.2f %.2f", LEFT_HAS_WALL_THRESHOLD, RIGHT_HAS_WALL_THRESHOLD);
+    wait_ms(200);
+    pc.printf("%.2f %.2f", LEFT_HAS_WALL_THRESHOLD, RIGHT_HAS_WALL_THRESHOLD);
+    wait_ms(200);
+    pc.printf("%.2f %.2f", LEFT_HAS_WALL_THRESHOLD, RIGHT_HAS_WALL_THRESHOLD);
+    wait_ms(200);
+    pc.printf("%.2f %.2f", LEFT_HAS_WALL_THRESHOLD, RIGHT_HAS_WALL_THRESHOLD);
+     wait_ms(200);
+    pc.printf("%.2f %.2f", LEFT_HAS_WALL_THRESHOLD, RIGHT_HAS_WALL_THRESHOLD);
+  
 
     reset_wheels();
 
     while(1) {
-       // delay(100);
-     // pc.printf("while\n");
+
     	if( !(IR_CENTER_LEFT.read() > CENTER_LEFT_WALL_THRESHOLD && IR_CENTER_RIGHT.read() > CENTER_RIGHT_WALL_THRESHOLD)) { //see wall
         go_straight();
     	}
@@ -206,12 +253,11 @@ int main() {
        // }
 
         ir_error = IR_LEFT.read() -IR_RIGHT.read() - base_error;
-        if(ir_error <= 0) {
-          pc.printf("turn left");
+        if(ir_error <= 0.07) {
           turn_left();
         }
-        else if(ir_error > 0) {
-          pc.printf("turn right");
+        else //if(ir_error > 0) 
+        {
           turn_right();
         }
       //  pc.printf("error: %.3f\r\nn", error);
